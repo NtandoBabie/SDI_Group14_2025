@@ -1,0 +1,1335 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <style>
+        #map {
+            width: 1284px;
+            height: 865px;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="data/TotalCrimePerPrecinct_1.js"></script>
+        <script src="data/OtherSeriousCrimesPerPrecinct_2.js"></script>
+        <script src="data/PropertyCrimesPerPrecinct_3.js"></script>
+        <script src="data/KidnappingPerPrecinct_4.js"></script>
+        <script src="data/ContactCrimePerPrecinct_5.js"></script>
+        <script src="data/SuburbBoundary_6.js"></script>
+        <script src="data/PoliceStation_7.js"></script>
+        <script src="data/StudyArea_8.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+            highlightLayer.openPopup();
+        }
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[-34.15269327909542,18.236613412465783],[-33.683253510148035,19.071199034129247]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_OSMStandard_0');
+        map.getPane('pane_OSMStandard_0').style.zIndex = 400;
+        var layer_OSMStandard_0 = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OSMStandard_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OSMStandard_0;
+        map.addLayer(layer_OSMStandard_0);
+        function pop_TotalCrimePerPrecinct_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['COMPNT_NM'] !== null ? autolinker.link(String(feature.properties['COMPNT_NM']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CREATE_DT'] !== null ? autolinker.link(String(feature.properties['CREATE_DT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['VERSION'] !== null ? autolinker.link(String(feature.properties['VERSION']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Precinct</th>\
+                        <td>' + (feature.properties['Precinct'] !== null ? autolinker.link(String(feature.properties['Precinct']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PrecinctId'] !== null ? autolinker.link(String(feature.properties['PrecinctId']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Crime_Cate</th>\
+                        <td>' + (feature.properties['Crime_Cate'] !== null ? autolinker.link(String(feature.properties['Crime_Cate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2015_2017'] !== null ? autolinker.link(String(feature.properties['F2015_2017']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2017_2019'] !== null ? autolinker.link(String(feature.properties['F2017_2019']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2019_2021'] !== null ? autolinker.link(String(feature.properties['F2019_2021']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">F2021_2023</th>\
+                        <td>' + (feature.properties['F2021_2023'] !== null ? autolinker.link(String(feature.properties['F2021_2023']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2013_2015'] !== null ? autolinker.link(String(feature.properties['F2013_2015']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(String(feature.properties['Shape_Leng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(String(feature.properties['Shape_Area']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_TotalCrimePerPrecinct_1_0(feature) {
+            if (feature.properties['F2021_2023'] >= 0.000000 && feature.properties['F2021_2023'] <= 2541.600000 ) {
+                return {
+                pane: 'pane_TotalCrimePerPrecinct_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,245,240,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 2541.600000 && feature.properties['F2021_2023'] <= 5083.200000 ) {
+                return {
+                pane: 'pane_TotalCrimePerPrecinct_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(253,190,165,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 5083.200000 && feature.properties['F2021_2023'] <= 7624.800000 ) {
+                return {
+                pane: 'pane_TotalCrimePerPrecinct_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(252,112,80,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 7624.800000 && feature.properties['F2021_2023'] <= 10166.400000 ) {
+                return {
+                pane: 'pane_TotalCrimePerPrecinct_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(212,32,32,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 10166.400000 && feature.properties['F2021_2023'] <= 12708.000000 ) {
+                return {
+                pane: 'pane_TotalCrimePerPrecinct_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(103,0,13,1.0)',
+                interactive: true,
+            }
+            }
+        }
+        map.createPane('pane_TotalCrimePerPrecinct_1');
+        map.getPane('pane_TotalCrimePerPrecinct_1').style.zIndex = 401;
+        map.getPane('pane_TotalCrimePerPrecinct_1').style['mix-blend-mode'] = 'normal';
+        var layer_TotalCrimePerPrecinct_1 = new L.geoJson(json_TotalCrimePerPrecinct_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_TotalCrimePerPrecinct_1',
+            layerName: 'layer_TotalCrimePerPrecinct_1',
+            pane: 'pane_TotalCrimePerPrecinct_1',
+            onEachFeature: pop_TotalCrimePerPrecinct_1,
+            style: style_TotalCrimePerPrecinct_1_0,
+        });
+        bounds_group.addLayer(layer_TotalCrimePerPrecinct_1);
+        map.addLayer(layer_TotalCrimePerPrecinct_1);
+        function pop_OtherSeriousCrimesPerPrecinct_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['COMPNT_NM'] !== null ? autolinker.link(String(feature.properties['COMPNT_NM']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CREATE_DT'] !== null ? autolinker.link(String(feature.properties['CREATE_DT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['VERSION'] !== null ? autolinker.link(String(feature.properties['VERSION']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(String(feature.properties['Shape_Leng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Precinct</th>\
+                        <td>' + (feature.properties['Precinct'] !== null ? autolinker.link(String(feature.properties['Precinct']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PrecinctId'] !== null ? autolinker.link(String(feature.properties['PrecinctId']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Crime_Cate</th>\
+                        <td>' + (feature.properties['Crime_Cate'] !== null ? autolinker.link(String(feature.properties['Crime_Cate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2015_2017'] !== null ? autolinker.link(String(feature.properties['F2015_2017']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2017_2019'] !== null ? autolinker.link(String(feature.properties['F2017_2019']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2019_2021'] !== null ? autolinker.link(String(feature.properties['F2019_2021']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">F2021_2023</th>\
+                        <td>' + (feature.properties['F2021_2023'] !== null ? autolinker.link(String(feature.properties['F2021_2023']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2013_2015'] !== null ? autolinker.link(String(feature.properties['F2013_2015']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Le_1'] !== null ? autolinker.link(String(feature.properties['Shape_Le_1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(String(feature.properties['Shape_Area']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_OtherSeriousCrimesPerPrecinct_2_0(feature) {
+            if (feature.properties['F2021_2023'] >= 0.000000 && feature.properties['F2021_2023'] <= 862.000000 ) {
+                return {
+                pane: 'pane_OtherSeriousCrimesPerPrecinct_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(247,252,245,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 862.000000 && feature.properties['F2021_2023'] <= 1724.000000 ) {
+                return {
+                pane: 'pane_OtherSeriousCrimesPerPrecinct_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(202,234,195,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 1724.000000 && feature.properties['F2021_2023'] <= 2586.000000 ) {
+                return {
+                pane: 'pane_OtherSeriousCrimesPerPrecinct_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(123,200,124,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 2586.000000 && feature.properties['F2021_2023'] <= 3448.000000 ) {
+                return {
+                pane: 'pane_OtherSeriousCrimesPerPrecinct_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(42,146,74,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 3448.000000 && feature.properties['F2021_2023'] <= 4310.000000 ) {
+                return {
+                pane: 'pane_OtherSeriousCrimesPerPrecinct_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,68,27,1.0)',
+                interactive: true,
+            }
+            }
+        }
+        map.createPane('pane_OtherSeriousCrimesPerPrecinct_2');
+        map.getPane('pane_OtherSeriousCrimesPerPrecinct_2').style.zIndex = 402;
+        map.getPane('pane_OtherSeriousCrimesPerPrecinct_2').style['mix-blend-mode'] = 'normal';
+        var layer_OtherSeriousCrimesPerPrecinct_2 = new L.geoJson(json_OtherSeriousCrimesPerPrecinct_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_OtherSeriousCrimesPerPrecinct_2',
+            layerName: 'layer_OtherSeriousCrimesPerPrecinct_2',
+            pane: 'pane_OtherSeriousCrimesPerPrecinct_2',
+            onEachFeature: pop_OtherSeriousCrimesPerPrecinct_2,
+            style: style_OtherSeriousCrimesPerPrecinct_2_0,
+        });
+        bounds_group.addLayer(layer_OtherSeriousCrimesPerPrecinct_2);
+        map.addLayer(layer_OtherSeriousCrimesPerPrecinct_2);
+        function pop_PropertyCrimesPerPrecinct_3(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['COMPNT_NM'] !== null ? autolinker.link(String(feature.properties['COMPNT_NM']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CREATE_DT'] !== null ? autolinker.link(String(feature.properties['CREATE_DT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['VERSION'] !== null ? autolinker.link(String(feature.properties['VERSION']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Precinct</th>\
+                        <td>' + (feature.properties['Precinct'] !== null ? autolinker.link(String(feature.properties['Precinct']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PrecinctId'] !== null ? autolinker.link(String(feature.properties['PrecinctId']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Crime_Cate</th>\
+                        <td>' + (feature.properties['Crime_Cate'] !== null ? autolinker.link(String(feature.properties['Crime_Cate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2015_2017'] !== null ? autolinker.link(String(feature.properties['F2015_2017']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2017_2019'] !== null ? autolinker.link(String(feature.properties['F2017_2019']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2019_2021'] !== null ? autolinker.link(String(feature.properties['F2019_2021']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">F2021_2023</th>\
+                        <td>' + (feature.properties['F2021_2023'] !== null ? autolinker.link(String(feature.properties['F2021_2023']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2013_2015'] !== null ? autolinker.link(String(feature.properties['F2013_2015']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(String(feature.properties['Shape_Leng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(String(feature.properties['Shape_Area']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_PropertyCrimesPerPrecinct_3_0(feature) {
+            if (feature.properties['F2021_2023'] >= 0.000000 && feature.properties['F2021_2023'] <= 784.200000 ) {
+                return {
+                pane: 'pane_PropertyCrimesPerPrecinct_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(252,251,253,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 784.200000 && feature.properties['F2021_2023'] <= 1568.400000 ) {
+                return {
+                pane: 'pane_PropertyCrimesPerPrecinct_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(220,220,236,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 1568.400000 && feature.properties['F2021_2023'] <= 2352.600000 ) {
+                return {
+                pane: 'pane_PropertyCrimesPerPrecinct_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(163,160,203,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 2352.600000 && feature.properties['F2021_2023'] <= 3136.800000 ) {
+                return {
+                pane: 'pane_PropertyCrimesPerPrecinct_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(106,81,163,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 3136.800000 && feature.properties['F2021_2023'] <= 3921.000000 ) {
+                return {
+                pane: 'pane_PropertyCrimesPerPrecinct_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(63,0,125,1.0)',
+                interactive: true,
+            }
+            }
+        }
+        map.createPane('pane_PropertyCrimesPerPrecinct_3');
+        map.getPane('pane_PropertyCrimesPerPrecinct_3').style.zIndex = 403;
+        map.getPane('pane_PropertyCrimesPerPrecinct_3').style['mix-blend-mode'] = 'normal';
+        var layer_PropertyCrimesPerPrecinct_3 = new L.geoJson(json_PropertyCrimesPerPrecinct_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_PropertyCrimesPerPrecinct_3',
+            layerName: 'layer_PropertyCrimesPerPrecinct_3',
+            pane: 'pane_PropertyCrimesPerPrecinct_3',
+            onEachFeature: pop_PropertyCrimesPerPrecinct_3,
+            style: style_PropertyCrimesPerPrecinct_3_0,
+        });
+        bounds_group.addLayer(layer_PropertyCrimesPerPrecinct_3);
+        map.addLayer(layer_PropertyCrimesPerPrecinct_3);
+        function pop_KidnappingPerPrecinct_4(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['COMPNT_NM'] !== null ? autolinker.link(String(feature.properties['COMPNT_NM']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CREATE_DT'] !== null ? autolinker.link(String(feature.properties['CREATE_DT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['VERSION'] !== null ? autolinker.link(String(feature.properties['VERSION']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Precinct</th>\
+                        <td>' + (feature.properties['Precinct'] !== null ? autolinker.link(String(feature.properties['Precinct']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PrecinctId'] !== null ? autolinker.link(String(feature.properties['PrecinctId']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Crime_Cate</th>\
+                        <td>' + (feature.properties['Crime_Cate'] !== null ? autolinker.link(String(feature.properties['Crime_Cate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2015_2017'] !== null ? autolinker.link(String(feature.properties['F2015_2017']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2017_2019'] !== null ? autolinker.link(String(feature.properties['F2017_2019']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2019_2021'] !== null ? autolinker.link(String(feature.properties['F2019_2021']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">F2021_2023</th>\
+                        <td>' + (feature.properties['F2021_2023'] !== null ? autolinker.link(String(feature.properties['F2021_2023']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2013_2015'] !== null ? autolinker.link(String(feature.properties['F2013_2015']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(String(feature.properties['Shape_Leng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(String(feature.properties['Shape_Area']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_KidnappingPerPrecinct_4_0(feature) {
+            if (feature.properties['F2021_2023'] >= 0.000000 && feature.properties['F2021_2023'] <= 0.000000 ) {
+                return {
+                pane: 'pane_KidnappingPerPrecinct_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(247,251,255,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 0.000000 && feature.properties['F2021_2023'] <= 4.000000 ) {
+                return {
+                pane: 'pane_KidnappingPerPrecinct_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,221,240,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 4.000000 && feature.properties['F2021_2023'] <= 11.600000 ) {
+                return {
+                pane: 'pane_KidnappingPerPrecinct_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(115,179,216,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 11.600000 && feature.properties['F2021_2023'] <= 27.200000 ) {
+                return {
+                pane: 'pane_KidnappingPerPrecinct_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(40,121,185,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 27.200000 && feature.properties['F2021_2023'] <= 110.000000 ) {
+                return {
+                pane: 'pane_KidnappingPerPrecinct_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(8,48,107,1.0)',
+                interactive: true,
+            }
+            }
+        }
+        map.createPane('pane_KidnappingPerPrecinct_4');
+        map.getPane('pane_KidnappingPerPrecinct_4').style.zIndex = 404;
+        map.getPane('pane_KidnappingPerPrecinct_4').style['mix-blend-mode'] = 'normal';
+        var layer_KidnappingPerPrecinct_4 = new L.geoJson(json_KidnappingPerPrecinct_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_KidnappingPerPrecinct_4',
+            layerName: 'layer_KidnappingPerPrecinct_4',
+            pane: 'pane_KidnappingPerPrecinct_4',
+            onEachFeature: pop_KidnappingPerPrecinct_4,
+            style: style_KidnappingPerPrecinct_4_0,
+        });
+        bounds_group.addLayer(layer_KidnappingPerPrecinct_4);
+        map.addLayer(layer_KidnappingPerPrecinct_4);
+        function pop_ContactCrimePerPrecinct_5(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['COMPNT_NM'] !== null ? autolinker.link(String(feature.properties['COMPNT_NM']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CREATE_DT'] !== null ? autolinker.link(String(feature.properties['CREATE_DT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['VERSION'] !== null ? autolinker.link(String(feature.properties['VERSION']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(String(feature.properties['Shape_Leng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Precinct</th>\
+                        <td>' + (feature.properties['Precinct'] !== null ? autolinker.link(String(feature.properties['Precinct']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PrecinctId'] !== null ? autolinker.link(String(feature.properties['PrecinctId']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Crime_Cate</th>\
+                        <td>' + (feature.properties['Crime_Cate'] !== null ? autolinker.link(String(feature.properties['Crime_Cate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2015_2017'] !== null ? autolinker.link(String(feature.properties['F2015_2017']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2017_2019'] !== null ? autolinker.link(String(feature.properties['F2017_2019']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2019_2021'] !== null ? autolinker.link(String(feature.properties['F2019_2021']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">F2021_2023</th>\
+                        <td>' + (feature.properties['F2021_2023'] !== null ? autolinker.link(String(feature.properties['F2021_2023']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['F2013_2015'] !== null ? autolinker.link(String(feature.properties['F2013_2015']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Le_1'] !== null ? autolinker.link(String(feature.properties['Shape_Le_1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(String(feature.properties['Shape_Area']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_ContactCrimePerPrecinct_5_0(feature) {
+            if (feature.properties['F2021_2023'] >= 0.000000 && feature.properties['F2021_2023'] <= 1783.600000 ) {
+                return {
+                pane: 'pane_ContactCrimePerPrecinct_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,255,178,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 1783.600000 && feature.properties['F2021_2023'] <= 3567.200000 ) {
+                return {
+                pane: 'pane_ContactCrimePerPrecinct_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(254,204,92,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 3567.200000 && feature.properties['F2021_2023'] <= 5350.800000 ) {
+                return {
+                pane: 'pane_ContactCrimePerPrecinct_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(253,141,60,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 5350.800000 && feature.properties['F2021_2023'] <= 7134.400000 ) {
+                return {
+                pane: 'pane_ContactCrimePerPrecinct_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(240,59,32,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['F2021_2023'] >= 7134.400000 && feature.properties['F2021_2023'] <= 8918.000000 ) {
+                return {
+                pane: 'pane_ContactCrimePerPrecinct_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(189,0,38,1.0)',
+                interactive: true,
+            }
+            }
+        }
+        map.createPane('pane_ContactCrimePerPrecinct_5');
+        map.getPane('pane_ContactCrimePerPrecinct_5').style.zIndex = 405;
+        map.getPane('pane_ContactCrimePerPrecinct_5').style['mix-blend-mode'] = 'normal';
+        var layer_ContactCrimePerPrecinct_5 = new L.geoJson(json_ContactCrimePerPrecinct_5, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_ContactCrimePerPrecinct_5',
+            layerName: 'layer_ContactCrimePerPrecinct_5',
+            pane: 'pane_ContactCrimePerPrecinct_5',
+            onEachFeature: pop_ContactCrimePerPrecinct_5,
+            style: style_ContactCrimePerPrecinct_5_0,
+        });
+        bounds_group.addLayer(layer_ContactCrimePerPrecinct_5);
+        map.addLayer(layer_ContactCrimePerPrecinct_5);
+        function pop_SuburbBoundary_6(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(String(feature.properties['Shape_Leng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM4_EN'] !== null ? autolinker.link(String(feature.properties['ADM4_EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM4_PCODE'] !== null ? autolinker.link(String(feature.properties['ADM4_PCODE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM4_REF'] !== null ? autolinker.link(String(feature.properties['ADM4_REF']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM4ALT1EN'] !== null ? autolinker.link(String(feature.properties['ADM4ALT1EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM4ALT2EN'] !== null ? autolinker.link(String(feature.properties['ADM4ALT2EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM3_EN'] !== null ? autolinker.link(String(feature.properties['ADM3_EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM3_PCODE'] !== null ? autolinker.link(String(feature.properties['ADM3_PCODE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM2_EN'] !== null ? autolinker.link(String(feature.properties['ADM2_EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM2_PCODE'] !== null ? autolinker.link(String(feature.properties['ADM2_PCODE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM1_EN'] !== null ? autolinker.link(String(feature.properties['ADM1_EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM1_PCODE'] !== null ? autolinker.link(String(feature.properties['ADM1_PCODE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0_EN'] !== null ? autolinker.link(String(feature.properties['ADM0_EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0_PCODE'] !== null ? autolinker.link(String(feature.properties['ADM0_PCODE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['date'] !== null ? autolinker.link(String(feature.properties['date']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['validOn'] !== null ? autolinker.link(String(feature.properties['validOn']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['validTo'] !== null ? autolinker.link(String(feature.properties['validTo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM1_ID'] !== null ? autolinker.link(String(feature.properties['ADM1_ID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM2_ID'] !== null ? autolinker.link(String(feature.properties['ADM2_ID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM3_ID'] !== null ? autolinker.link(String(feature.properties['ADM3_ID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Le_1'] !== null ? autolinker.link(String(feature.properties['Shape_Le_1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(String(feature.properties['Shape_Area']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_SuburbBoundary_6_0() {
+            return {
+                pane: 'pane_SuburbBoundary_6',
+                opacity: 1,
+                color: 'rgba(255,127,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(205,196,129,0.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_SuburbBoundary_6');
+        map.getPane('pane_SuburbBoundary_6').style.zIndex = 406;
+        map.getPane('pane_SuburbBoundary_6').style['mix-blend-mode'] = 'normal';
+        var layer_SuburbBoundary_6 = new L.geoJson(json_SuburbBoundary_6, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_SuburbBoundary_6',
+            layerName: 'layer_SuburbBoundary_6',
+            pane: 'pane_SuburbBoundary_6',
+            onEachFeature: pop_SuburbBoundary_6,
+            style: style_SuburbBoundary_6_0,
+        });
+        bounds_group.addLayer(layer_SuburbBoundary_6);
+        map.addLayer(layer_SuburbBoundary_6);
+        function pop_PoliceStation_7(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">COMPNT_NM</th>\
+                        <td>' + (feature.properties['COMPNT_NM'] !== null ? autolinker.link(String(feature.properties['COMPNT_NM']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['LOCATION_X'] !== null ? autolinker.link(String(feature.properties['LOCATION_X']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['LOCATION_Y'] !== null ? autolinker.link(String(feature.properties['LOCATION_Y']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CREATE_DT'] !== null ? autolinker.link(String(feature.properties['CREATE_DT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['VERSION'] !== null ? autolinker.link(String(feature.properties['VERSION']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_PoliceStation_7_0() {
+            return {
+                pane: 'pane_PoliceStation_7',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,21,254,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_PoliceStation_7');
+        map.getPane('pane_PoliceStation_7').style.zIndex = 407;
+        map.getPane('pane_PoliceStation_7').style['mix-blend-mode'] = 'normal';
+        var layer_PoliceStation_7 = new L.geoJson(json_PoliceStation_7, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_PoliceStation_7',
+            layerName: 'layer_PoliceStation_7',
+            pane: 'pane_PoliceStation_7',
+            onEachFeature: pop_PoliceStation_7,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_PoliceStation_7_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_PoliceStation_7);
+        map.addLayer(layer_PoliceStation_7);
+        function pop_StudyArea_8(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(String(feature.properties['Shape_Leng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM2_EN'] !== null ? autolinker.link(String(feature.properties['ADM2_EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM2_PCODE'] !== null ? autolinker.link(String(feature.properties['ADM2_PCODE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM2_REF'] !== null ? autolinker.link(String(feature.properties['ADM2_REF']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM2ALT1EN'] !== null ? autolinker.link(String(feature.properties['ADM2ALT1EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM2ALT2EN'] !== null ? autolinker.link(String(feature.properties['ADM2ALT2EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM1_EN'] !== null ? autolinker.link(String(feature.properties['ADM1_EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM1_PCODE'] !== null ? autolinker.link(String(feature.properties['ADM1_PCODE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0_EN'] !== null ? autolinker.link(String(feature.properties['ADM0_EN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM0_PCODE'] !== null ? autolinker.link(String(feature.properties['ADM0_PCODE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['date'] !== null ? autolinker.link(String(feature.properties['date']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['validOn'] !== null ? autolinker.link(String(feature.properties['validOn']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['validTo'] !== null ? autolinker.link(String(feature.properties['validTo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM1_ID'] !== null ? autolinker.link(String(feature.properties['ADM1_ID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ADM2_ID'] !== null ? autolinker.link(String(feature.properties['ADM2_ID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Le_1'] !== null ? autolinker.link(String(feature.properties['Shape_Le_1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(String(feature.properties['Shape_Area']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_StudyArea_8_0() {
+            return {
+                pane: 'pane_StudyArea_8',
+                opacity: 1,
+                color: 'rgba(227,26,28,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,0,0,0.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_StudyArea_8');
+        map.getPane('pane_StudyArea_8').style.zIndex = 408;
+        map.getPane('pane_StudyArea_8').style['mix-blend-mode'] = 'normal';
+        var layer_StudyArea_8 = new L.geoJson(json_StudyArea_8, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_StudyArea_8',
+            layerName: 'layer_StudyArea_8',
+            pane: 'pane_StudyArea_8',
+            onEachFeature: pop_StudyArea_8,
+            style: style_StudyArea_8_0,
+        });
+        bounds_group.addLayer(layer_StudyArea_8);
+        map.addLayer(layer_StudyArea_8);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
+        var overlaysTree = [
+            {label: '<img src="legend/StudyArea_8.png" /> Study Area', layer: layer_StudyArea_8},
+            {label: '<img src="legend/PoliceStation_7.png" /> Police Station', layer: layer_PoliceStation_7},
+            {label: '<img src="legend/SuburbBoundary_6.png" /> Suburb Boundary', layer: layer_SuburbBoundary_6},
+            {label: 'Contact Crime Per Precinct<br /><table><tr><td style="text-align: center;"><img src="legend/ContactCrimePerPrecinct_5_00000178360000.png" /></td><td>0.0000 - 1783.6000</td></tr><tr><td style="text-align: center;"><img src="legend/ContactCrimePerPrecinct_5_17836000356720001.png" /></td><td>1783.6000 - 3567.2000</td></tr><tr><td style="text-align: center;"><img src="legend/ContactCrimePerPrecinct_5_35672000535080002.png" /></td><td>3567.2000 - 5350.8000</td></tr><tr><td style="text-align: center;"><img src="legend/ContactCrimePerPrecinct_5_53508000713440003.png" /></td><td>5350.8000 - 7134.4000</td></tr><tr><td style="text-align: center;"><img src="legend/ContactCrimePerPrecinct_5_71344000891800004.png" /></td><td>7134.4000 - 8918.0000</td></tr></table>', layer: layer_ContactCrimePerPrecinct_5},
+            {label: 'Kidnapping Per Precinct<br /><table><tr><td style="text-align: center;"><img src="legend/KidnappingPerPrecinct_4_00000000000.png" /></td><td>0.0000 - 0.0000</td></tr><tr><td style="text-align: center;"><img src="legend/KidnappingPerPrecinct_4_00000400001.png" /></td><td>0.0000 - 4.0000</td></tr><tr><td style="text-align: center;"><img src="legend/KidnappingPerPrecinct_4_400001160002.png" /></td><td>4.0000 - 11.6000</td></tr><tr><td style="text-align: center;"><img src="legend/KidnappingPerPrecinct_4_1160002720003.png" /></td><td>11.6000 - 27.2000</td></tr><tr><td style="text-align: center;"><img src="legend/KidnappingPerPrecinct_4_27200011000004.png" /></td><td>27.2000 - 110.0000</td></tr></table>', layer: layer_KidnappingPerPrecinct_4},
+            {label: 'Property Crimes Per Precinct<br /><table><tr><td style="text-align: center;"><img src="legend/PropertyCrimesPerPrecinct_3_0000078420000.png" /></td><td>0.0000 - 784.2000</td></tr><tr><td style="text-align: center;"><img src="legend/PropertyCrimesPerPrecinct_3_7842000156840001.png" /></td><td>784.2000 - 1568.4000</td></tr><tr><td style="text-align: center;"><img src="legend/PropertyCrimesPerPrecinct_3_15684000235260002.png" /></td><td>1568.4000 - 2352.6000</td></tr><tr><td style="text-align: center;"><img src="legend/PropertyCrimesPerPrecinct_3_23526000313680003.png" /></td><td>2352.6000 - 3136.8000</td></tr><tr><td style="text-align: center;"><img src="legend/PropertyCrimesPerPrecinct_3_31368000392100004.png" /></td><td>3136.8000 - 3921.0000</td></tr></table>', layer: layer_PropertyCrimesPerPrecinct_3},
+            {label: 'Other Serious Crimes Per Precinct<br /><table><tr><td style="text-align: center;"><img src="legend/OtherSeriousCrimesPerPrecinct_2_0000086200000.png" /></td><td>0.0000 - 862.0000</td></tr><tr><td style="text-align: center;"><img src="legend/OtherSeriousCrimesPerPrecinct_2_8620000172400001.png" /></td><td>862.0000 - 1724.0000</td></tr><tr><td style="text-align: center;"><img src="legend/OtherSeriousCrimesPerPrecinct_2_17240000258600002.png" /></td><td>1724.0000 - 2586.0000</td></tr><tr><td style="text-align: center;"><img src="legend/OtherSeriousCrimesPerPrecinct_2_25860000344800003.png" /></td><td>2586.0000 - 3448.0000</td></tr><tr><td style="text-align: center;"><img src="legend/OtherSeriousCrimesPerPrecinct_2_34480000431000004.png" /></td><td>3448.0000 - 4310.0000</td></tr></table>', layer: layer_OtherSeriousCrimesPerPrecinct_2},
+            {label: 'Total Crime Per Precinct<br /><table><tr><td style="text-align: center;"><img src="legend/TotalCrimePerPrecinct_1_00000254160000.png" /></td><td>0.0000 - 2541.6000</td></tr><tr><td style="text-align: center;"><img src="legend/TotalCrimePerPrecinct_1_25416000508320001.png" /></td><td>2541.6000 - 5083.2000</td></tr><tr><td style="text-align: center;"><img src="legend/TotalCrimePerPrecinct_1_50832000762480002.png" /></td><td>5083.2000 - 7624.8000</td></tr><tr><td style="text-align: center;"><img src="legend/TotalCrimePerPrecinct_1_762480001016640003.png" /></td><td>7624.8000 - 10166.4000</td></tr><tr><td style="text-align: center;"><img src="legend/TotalCrimePerPrecinct_1_1016640001270800004.png" /></td><td>10166.4000 - 12708.0000</td></tr></table>', layer: layer_TotalCrimePerPrecinct_1},
+            {label: "OSM Standard", layer: layer_OSMStandard_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: false, 
+        });
+        lay.addTo(map);
+		document.addEventListener("DOMContentLoaded", function() {
+            // set new Layers List height which considers toggle icon
+            function newLayersListHeight() {
+                var layerScrollbarElement = document.querySelector('.leaflet-control-layers-scrollbar');
+                if (layerScrollbarElement) {
+                    var layersListElement = document.querySelector('.leaflet-control-layers-list');
+                    var originalHeight = layersListElement.style.height 
+                        || window.getComputedStyle(layersListElement).height;
+                    var newHeight = parseFloat(originalHeight) - 50;
+                    layersListElement.style.height = newHeight + 'px';
+                }
+            }
+            var isLayersListExpanded = true;
+            var controlLayersElement = document.querySelector('.leaflet-control-layers');
+            var toggleLayerControl = document.querySelector('.leaflet-control-layers-toggle');
+            // toggle Collapsed/Expanded and apply new Layers List height
+            toggleLayerControl.addEventListener('click', function() {
+                if (isLayersListExpanded) {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                } else {
+                    controlLayersElement.classList.add('leaflet-control-layers-expanded');
+                }
+                isLayersListExpanded = !isLayersListExpanded;
+                newLayersListHeight()
+            });	
+			// apply new Layers List height if toggle layerstree
+			if (controlLayersElement) {
+				controlLayersElement.addEventListener('click', function(event) {
+					var toggleLayerHeaderPointer = event.target.closest('.leaflet-layerstree-header-pointer span');
+					if (toggleLayerHeaderPointer) {
+						newLayersListHeight();
+					}
+				});
+			}
+            // Collapsed/Expanded at Start to apply new height
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            // Collapsed touch/small screen
+            var isSmallScreen = window.innerWidth < 650;
+            if (isSmallScreen) {
+                setTimeout(function() {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                    isLayersListExpanded = !isLayersListExpanded;
+                }, 500);
+            }  
+        });       
+        setBounds();
+        var i = 0;
+        layer_TotalCrimePerPrecinct_1.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Precinct'] !== null?String('<div style="color: #000000; font-size: 6pt; font-family: \'Sans Serif\', sans-serif;">' + layer.feature.properties['Precinct']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_TotalCrimePerPrecinct_1'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_OtherSeriousCrimesPerPrecinct_2.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Precinct'] !== null?String('<div style="color: #000000; font-size: 6pt; font-family: \'Sans Serif\', sans-serif;">' + layer.feature.properties['Precinct']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_OtherSeriousCrimesPerPrecinct_2'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_PropertyCrimesPerPrecinct_3.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Precinct'] !== null?String('<div style="color: #000000; font-size: 6pt; font-family: \'Sans Serif\', sans-serif;">' + layer.feature.properties['Precinct']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_PropertyCrimesPerPrecinct_3'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_KidnappingPerPrecinct_4.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['COMPNT_NM'] !== null?String('<div style="color: #000000; font-size: 6pt; font-family: \'Sans Serif\', sans-serif;">' + layer.feature.properties['COMPNT_NM']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_KidnappingPerPrecinct_4'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_ContactCrimePerPrecinct_5.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Precinct'] !== null?String('<div style="color: #000000; font-size: 6pt; font-family: \'Sans Serif\', sans-serif;">' + layer.feature.properties['Precinct']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_ContactCrimePerPrecinct_5'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        resetLabels([layer_TotalCrimePerPrecinct_1,layer_OtherSeriousCrimesPerPrecinct_2,layer_PropertyCrimesPerPrecinct_3,layer_KidnappingPerPrecinct_4,layer_ContactCrimePerPrecinct_5,layer_PoliceStation_7]);
+        map.on("zoomend", function(){
+            resetLabels([layer_TotalCrimePerPrecinct_1,layer_OtherSeriousCrimesPerPrecinct_2,layer_PropertyCrimesPerPrecinct_3,layer_KidnappingPerPrecinct_4,layer_ContactCrimePerPrecinct_5,layer_PoliceStation_7]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_TotalCrimePerPrecinct_1,layer_OtherSeriousCrimesPerPrecinct_2,layer_PropertyCrimesPerPrecinct_3,layer_KidnappingPerPrecinct_4,layer_ContactCrimePerPrecinct_5,layer_PoliceStation_7]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_TotalCrimePerPrecinct_1,layer_OtherSeriousCrimesPerPrecinct_2,layer_PropertyCrimesPerPrecinct_3,layer_KidnappingPerPrecinct_4,layer_ContactCrimePerPrecinct_5,layer_PoliceStation_7]);
+        });
+        </script>
+    </body>
+</html>
